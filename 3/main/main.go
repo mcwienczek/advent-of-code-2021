@@ -9,14 +9,66 @@ import (
 )
 
 func main() {
+	wordLength := 12
 	arr := ReadInput("input.txt")
-	fmt.Printf("part1: %d", Solve1(arr))
+	result1 := Part1(wordLength, arr)
+
+	fmt.Printf("part1: %d\n", result1)
+	result2a := Part2(wordLength, arr, Higest)
+	result2b := Part2(wordLength, arr, Lowest)
+	fmt.Printf("part2: %d\n", result2a * result2b)
 }
 
-func Part1(arr []uint64) int {
+func Higest(oneCount int, zeroCount int) bool {
+	return oneCount >= zeroCount
+}
+
+func Lowest(oneCount int, zeroCount int) bool {
+	return oneCount < zeroCount
+}
+
+type CompareOperator func(int, int) bool
+
+func Part2(wordLength int, arr []uint64, cmp CompareOperator) uint64 {
+	var selectedOnes []uint64
+
+	selectedOnes = arr
+	for i := wordLength; i > 0; i-- {
+		zeroCount := 0
+		oneCount := 0
+		var ones []uint64
+		var zeroes []uint64
+
+		var one uint64 = 1 << (i - 1)
+		for j := 0; j < len(selectedOnes); j++ {
+			if selectedOnes[j] & one == 0 {
+				zeroes = append(zeroes, selectedOnes[j])
+				zeroCount += 1
+			} else {
+				ones = append(ones, selectedOnes[j])
+				oneCount += 1
+			}
+		}
+
+		if cmp(oneCount, zeroCount) {
+			selectedOnes = ones
+		} else {
+			selectedOnes = zeroes
+		}
+
+		if len(selectedOnes) == 1 {
+			return selectedOnes[0]
+		}
+	}
+	return selectedOnes[0]
+}
+
+
+
+func Part1(wordLength int, arr []uint64) uint64 {
 	var gamma uint64 = 0
 
-	for i := 12; i > 0; i-- {
+	for i := wordLength; i > 0; i-- {
 		zeroCount := 0
 		oneCount := 0
 		var one uint64 = 1 << (i - 1)
@@ -42,8 +94,8 @@ func Part1(arr []uint64) int {
 	gamma = gamma >> 1
 	var epsilon uint64 = ^gamma
 	//fmt.Printf("epsilon: %b", epsilon)
-	epsilon = epsilon << (64 - 12)
-	epsilon = epsilon >> (64 - 12)
+	epsilon = epsilon << (64 - wordLength)
+	epsilon = epsilon >> (64 - wordLength)
 	//fmt.Printf("epsilon: %b\n gamma: %b\n", epsilon, gamma)
 	return gamma * epsilon
 }
